@@ -31,7 +31,13 @@ app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
   //res.send("Ok");         // Respond with 'Ok' (we will replace this)
   urlDatabase[r] = req.body.longURL;
-  res.render("urls_show", {shortURL:r, longURL:urlDatabase[r]});
+  res.redirect("/urls/"+r);
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  //console.log(req.params.shortURL);
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
