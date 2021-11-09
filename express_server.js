@@ -40,6 +40,20 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+app.post("/urls/:shortURL/edit", (req, res) => {
+  //console.log(req.params.shortURL);
+  //console.log(req.body.longURL); 
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  //delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
+});
+
+app.post("/urls/:shortURL", (req, res) => {
+  //console.log(req.params.shortURL);
+  const sURL = req.params.shortURL
+  res.redirect("/urls/" + sURL);
+});
+
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
