@@ -35,6 +35,15 @@ const getEmail = function (uid) {
   }
 };
 
+const checkEmail = function (email) {
+  for (const a in users) {
+    if (users[a].email === email) {
+      return true;
+    }
+  }
+  return false;
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -47,15 +56,29 @@ app.get("/hello", (req, res) => {
 // -- -- POST -- -- //
 
 app.post("/register", (req, res) => {
-  const uid = generateRandomString();
-  //console.log(req.body);
-  users[uid] = {
-    id: uid,
-    email: req.body.email,
-    password: req.body.password
-  };
-  res.cookie("user_id ", uid);
-  res.redirect("/urls");
+  console.log(req.body.email);
+  console.log(req.body.password);
+
+  if (req.body.email === "" || req.body.password === "") { 
+    //res.send("400: no email or password was entered"); 
+    const message = "400: No email or password was entered";
+    res.status(400).send(message);
+  } else {
+    if (checkEmail(req.body.email)) { 
+      const message =  "400: Email is alreadly use";
+      res.status(400).send(message);
+    }
+
+    const uid = generateRandomString();
+    //console.log(req.body);
+    users[uid] = {
+      id: uid,
+      email: req.body.email,
+      password: req.body.password
+    };
+    res.cookie("user_id ", uid);
+    res.redirect("/urls");
+  }
 });
 
 app.post("/urls", (req, res) => {
@@ -75,8 +98,11 @@ app.post("/login", (req, res) => {
       acc = users[a];
     }
   }
+
   //console.log(acc);
-  res.cookie("user_id", acc.id);
+  if (acc !== undefined) {
+    res.cookie("user_id", acc.id);
+  }
   res.redirect("/urls");
 });
 
