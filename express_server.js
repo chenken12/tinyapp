@@ -28,6 +28,8 @@ app.get("/hello", (req, res) => {
   res.render("hello_world", templateVars);
 });
 
+// -- -- POST -- -- //
+
 app.post("/urls", (req, res) => {
   const r = generateRandomString();
   //console.log("random", r);
@@ -69,6 +71,15 @@ app.post("/urls/:shortURL", (req, res) => {
   //console.log(req.params.shortURL);
   const sURL = req.params.shortURL;
   res.redirect("/urls/" + sURL);
+});
+
+// -- -- GET -- -- //
+
+app.get("/register", (req, res) => {
+  const templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render("register", templateVars);
 });
 
 app.get("/urls", (req, res) => {
