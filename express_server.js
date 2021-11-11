@@ -1,6 +1,11 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
+const salt = bcrypt.genSaltSync(10);
+
 const app = express();
+
+
 app.use(cookieParser());
 
 const PORT = 8080; // default port 8080
@@ -32,6 +37,7 @@ const users = {
     password: "purple-monkey-dinosaur"
   }
 }
+users["aJ48lW"].password = bcrypt.hashSync("purple-monkey-dinosaur", salt);
 
 const getEmail = function (uid) {
   if (uid === undefined) {
@@ -96,11 +102,15 @@ app.post("/register", (req, res) => {
 
     const uid = generateRandomString();
     //console.log(req.body);
+    const enPass = bcrypt.hashSync(req.body.password, salt);
+
     users[uid] = {
       id: uid,
       email: req.body.email,
-      password: req.body.password
+      password: enPass
     };
+
+    console.log("test:", users);
     res.cookie("user_id ", uid);
     res.redirect("/urls");
   }
@@ -110,17 +120,20 @@ app.post("/login", (req, res) => {
   console.log(req.body.email);
   const acc = checkEmail(req.body.email);
 
+
+  // bcrypt.compareSync("pink-donkey-minotaur", hashedPassword);
   //console.log(acc);
   if (acc !== false) {
-    if (acc.password === req.body.password) {
+    //if (acc.password === req.body.password) {
+    if (bcrypt.compareSync(req.body.password, acc.password)) {
       res.cookie("user_id", acc.id);
-      res.redirect("/urls");
+      return res.redirect("/urls");
     }
     const message = "403: Password doesn't match";
-    res.status(403).send(message);
+    return res.status(403).send(message);
   }
   const message = "403: Email cannot be found";
-  res.status(403).send(message);
+  return res.status(403).send(message);
   //res.redirect("/login");
 });
 
