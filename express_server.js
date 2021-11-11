@@ -15,13 +15,19 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+      longURL: "https://www.tsn.ca",
+      userID: "aJ48lW"
+  },
+  i3BoGr: {
+      longURL: "https://www.google.ca",
+      userID: "aJ48lW"
+  }
 };
 
 const users = { 
-  "userRandomID": {
-    id: "userRandomID", 
+  "aJ48lW": {
+    id: "aJ48lW", 
     email: "user@example.com", 
     password: "purple-monkey-dinosaur"
   }
@@ -42,6 +48,26 @@ const checkEmail = function (email) {
     }
   }
   return false;
+};
+
+const checkLogin = function (uid) {
+  for (const a in users) {
+    if (users[a].id === uid ) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const filterUsersUrl = function (uid) {
+  const uList = {};
+  for (const list in urlDatabase) {
+    if (urlDatabase[list].userID === uid ) {
+      uList[list] = urlDatabase[list];
+    }
+  }
+  return uList;
 };
 
 app.get("/", (req, res) => {
@@ -81,15 +107,6 @@ app.post("/register", (req, res) => {
   }
 });
 
-app.post("/urls", (req, res) => {
-  const r = generateRandomString();
-  //console.log("random", r);
-  console.log(req.body);  // Log the POST request body to the console
-  //res.send("Ok");         // Respond with 'Ok' (we will replace this)
-  urlDatabase[r] = req.body.longURL;
-  res.redirect("/urls/" + r);
-});
-
 app.post("/login", (req, res) => {
   console.log(req.body.email);
   const acc = checkEmail(req.body.email);
@@ -108,6 +125,22 @@ app.post("/login", (req, res) => {
   //res.redirect("/login");
 });
 
+app.post("/urls", (req, res) => {
+  if (checkLogin(req.cookies["user_id"])) { 
+    const r = generateRandomString();
+    urlDatabase[r] = {
+      longURL: req.body.longURL,
+      userID: req.cookies["user_id"]
+    }
+    //urlDatabase[r] = req.body.longURL;
+    res.redirect("/urls/" + r);
+  } else {
+    const message =  "401: Unauthorized need to Login\n";
+    res.status(400).send(message);
+  }
+  
+});
+
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id');
   console.log("Cookie-Clear");
@@ -121,10 +154,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/urls/:shortURL/edit", (req, res) => {
-  //console.log(req.params.shortURL);
-  //console.log(req.body.longURL);
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-  res.redirect("/urls");
+  if (checkLogin(req.cookies["user_id"])) { 
+    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    res.redirect("/urls");
+  } else {
+    const message =  "401: Unauthorized need to Login\n";
+    res.status(400).send(message);
+  }
 });
 
 app.post("/urls/:shortURL", (req, res) => {
@@ -140,22 +176,35 @@ app.get("/register", (req, res) => {
   const templateVars = {
     email: useremail
   };
-  res.render("register", templateVars);
+
+  if (checkLogin(req.cookies["user_id"])) {
+    res.redirect("/urls");
+  } else {
+    res.render("register", templateVars);
+  }
 });
 
 app.get("/login", (req, res) => {
+  //console.log(req.cookies["user_id"]);
   const useremail = getEmail(req.cookies["user_id"]);
   const templateVars = {
     email: useremail
   };
-  res.render("login", templateVars);
+
+  if (checkLogin(req.cookies["user_id"])) {
+    res.redirect("/urls");
+  } else {
+    res.render("login", templateVars);
+  }
 });
 
 app.get("/urls", (req, res) => {
+  const userUrl = filterUsersUrl(req.cookies["user_id"]);
+
   const useremail = getEmail(req.cookies["user_id"]);
   const templateVars = {
     email: useremail,
-    urls: urlDatabase
+    urls: userUrl
   };
   res.render("urls_index", templateVars);
 });
@@ -169,19 +218,41 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const useremail = getEmail(req.cookies["user_id"]);
-  const templateVars = {
-    email: useremail,
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL]
-  };
-  //console.log(req);
-  res.render("urls_show", templateVars);
+  let checkshortUrl = false;
+  for (const u in urlDatabase) {
+    if (u === req.params.shortURL) checkshortUrl = true;
+  }
+
+  if (checkshortUrl) {
+    const useremail = getEmail(req.cookies["user_id"]);
+    const templateVars = {
+      email: useremail,
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL
+    };
+
+    //console.log(req);
+    res.render("urls_show", templateVars);
+
+  } else {
+    const message =  "404: Invalid Link";
+    res.status(400).send(message);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  let checkshortUrl = false;
+  for (const u in urlDatabase) {
+    if (u === req.params.shortURL) checkshortUrl = true;
+  }
+  
+  if (checkshortUrl) {
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+  } else {
+    const message =  "404: Invalid shortUrl";
+    res.status(400).send(message);
+  }
 });
 
 app.get("/urls.json", (req, res) => {
