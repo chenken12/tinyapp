@@ -38,7 +38,7 @@ const getEmail = function (uid) {
 const checkEmail = function (email) {
   for (const a in users) {
     if (users[a].email === email) {
-      return true;
+      return users[a];
     }
   }
   return false;
@@ -92,18 +92,20 @@ app.post("/urls", (req, res) => {
 
 app.post("/login", (req, res) => {
   console.log(req.body.email);
-  let acc;
-  for (const a in users) {
-    if (users[a].email === req.body.email) {
-      acc = users[a];
-    }
-  }
+  const acc = checkEmail(req.body.email);
 
   //console.log(acc);
-  if (acc !== undefined) {
-    res.cookie("user_id", acc.id);
+  if (acc !== false) {
+    if (acc.password === req.body.password) {
+      res.cookie("user_id", acc.id);
+      res.redirect("/urls");
+    }
+    const message = "403: Password doesn't match";
+    res.status(403).send(message);
   }
-  res.redirect("/urls");
+  const message = "403: Email cannot be found";
+  res.status(403).send(message);
+  //res.redirect("/login");
 });
 
 app.post("/logout", (req, res) => {
@@ -139,6 +141,14 @@ app.get("/register", (req, res) => {
     email: useremail
   };
   res.render("register", templateVars);
+});
+
+app.get("/login", (req, res) => {
+  const useremail = getEmail(req.cookies["user_id"]);
+  const templateVars = {
+    email: useremail
+  };
+  res.render("login", templateVars);
 });
 
 app.get("/urls", (req, res) => {
