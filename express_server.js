@@ -56,7 +56,6 @@ const checkLogin = function (uid) {
       return true;
     }
   }
-
   return false;
 };
 
@@ -149,8 +148,13 @@ app.post("/logout", (req, res) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   //console.log(req.params.shortURL);
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+  if (checkLogin(req.cookies["user_id"])) { 
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls");
+  } else {
+    const message =  "401: Unauthorized need to Login\n";
+    res.status(400).send(message);
+  }
 });
 
 app.post("/urls/:shortURL/edit", (req, res) => {
@@ -199,10 +203,12 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  const clogin = checkLogin(req.cookies["user_id"]);
   const userUrl = filterUsersUrl(req.cookies["user_id"]);
-
   const useremail = getEmail(req.cookies["user_id"]);
+
   const templateVars = {
+    login: clogin,
     email: useremail,
     urls: userUrl
   };
