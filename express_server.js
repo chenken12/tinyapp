@@ -124,6 +124,12 @@ app.post("/login", (req, res) => {
   //res.redirect("/login");
 });
 
+app.post("/logout", (req, res) => {
+  res.clearCookie('user_id');
+  console.log("Cookie-Clear");
+  res.redirect("/urls");
+});
+
 app.post("/urls", (req, res) => {
   if (checkLogin(req.cookies["user_id"])) { 
     const r = generateRandomString();
@@ -138,12 +144,6 @@ app.post("/urls", (req, res) => {
     res.status(400).send(message);
   }
   
-});
-
-app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
-  console.log("Cookie-Clear");
-  res.redirect("/urls");
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
