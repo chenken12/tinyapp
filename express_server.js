@@ -1,6 +1,7 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
+const methodOverride = require('method-override')
 const { getEmailbyUid, checkEmail, checkLogin, filterUsersUrl } = require('./helpers/helpers');
 
 const bcrypt = require('bcryptjs');
@@ -8,6 +9,7 @@ const salt = bcrypt.genSaltSync(10);
 
 const app = express();
 
+app.use(methodOverride('_method'));
 app.use(cookieParser());
 
 app.use(cookieSession({
@@ -133,27 +135,6 @@ app.post("/urls", (req, res) => {
   return res.status(400).send(message);
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => {
-  //console.log(req.params.shortURL);
-  const { user_id } = req.session;
-  if (checkLogin(user_id, users)) {
-    delete urlDatabase[req.params.shortURL];
-    return res.redirect("/urls");
-  }
-  const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
-  return res.status(400).send(message);
-});
-
-app.post("/urls/:shortURL/edit", (req, res) => {
-  const { user_id } = req.session;
-  if (checkLogin(user_id, users)) {
-    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-    return res.redirect("/urls");
-  }
-  const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
-  return res.status(400).send(message);
-});
-
 app.post("/urls/:shortURL", (req, res) => {
   //console.log(req.params.shortURL);
   const sURL = req.params.shortURL;
@@ -263,6 +244,29 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
+});
+
+// -- -- DELETE -- -- //
+app.delete('/urls/:shortURL', function (req, res) {
+  //console.log("New Delete:", req.params.shortURL);
+  const { user_id } = req.session;
+  if (checkLogin(user_id, users)) {
+    delete urlDatabase[req.params.shortURL];
+    return res.redirect("/urls");
+  }
+  const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
+  return res.status(400).send(message);
+});
+
+// -- -- PUT/EDIT -- -- //
+app.put('/urls/:shortURL', function (req, res) {
+  const { user_id } = req.session;
+  if (checkLogin(user_id, users)) {
+    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    return res.redirect("/urls");
+  }
+  const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
+  return res.status(400).send(message);
 });
 
 app.listen(PORT, () => {
