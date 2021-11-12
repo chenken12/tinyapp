@@ -89,7 +89,6 @@ app.post("/register", (req, res) => {
   //res.cookie("user_id ", uid);
   req.session.user_id = uid;
   return res.redirect("/urls");
-
 });
 
 app.post("/login", (req, res) => {
@@ -128,12 +127,10 @@ app.post("/urls", (req, res) => {
       visits: 0
     };
     //urlDatabase[r] = req.body.longURL;
-    res.redirect("/urls/" + r);
-  } else {
-    const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
-    res.status(400).send(message);
-  }
-  
+    return res.redirect("/urls/" + r);
+  } 
+  const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
+  return res.status(400).send(message);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -141,22 +138,20 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const { user_id } = req.session;
   if (checkLogin(user_id, users)) {
     delete urlDatabase[req.params.shortURL];
-    res.redirect("/urls");
-  } else {
-    const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
-    res.status(400).send(message);
+    return res.redirect("/urls");
   }
+  const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
+  return res.status(400).send(message);
 });
 
 app.post("/urls/:shortURL/edit", (req, res) => {
   const { user_id } = req.session;
   if (checkLogin(user_id, users)) {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-    res.redirect("/urls");
-  } else {
-    const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
-    res.status(400).send(message);
+    return res.redirect("/urls");
   }
+  const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
+  return res.status(400).send(message);
 });
 
 app.post("/urls/:shortURL", (req, res) => {
