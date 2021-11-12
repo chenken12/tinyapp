@@ -26,14 +26,19 @@ app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+const testDay = new Date();
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
-    userID: "aJ48lW"
+    userID: "aJ48lW",
+    date: testDay.toLocaleString(),
+    visits: 0
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
-    userID: "aJ48lW"
+    userID: "aJ48lW",
+    date: testDay.toLocaleString(),
+    visits: 0
   }
 };
 
@@ -81,7 +86,6 @@ app.post("/register", (req, res) => {
     password: enPass
   };
 
-  //console.log("test user DB:", users);
   //res.cookie("user_id ", uid);
   req.session.user_id = uid;
   return res.redirect("/urls");
@@ -92,19 +96,16 @@ app.post("/login", (req, res) => {
   //console.log(req.body.email);
   const acc = checkEmail(req.body.email, users);
 
-  if (acc !== undefined) {
-    //if (acc.password === req.body.password) {
-    if (bcrypt.compareSync(req.body.password, acc.password)) {
-      //res.cookie("user_id", acc.id);
-      req.session.user_id = acc.id;
-      return res.redirect("/urls");
-    }
-    const message = "403: Password doesn't match! <a href=\"/login\">try again</a>";
+  if (acc === undefined) {
+    const message = "403: Email cannot be found. <a href=\"/login\">try again</a>";
     return res.status(403).send(message);
+  } else if (bcrypt.compareSync(req.body.password, acc.password)) {
+    //res.cookie("user_id", acc.id);
+    req.session.user_id = acc.id;
+    return res.redirect("/urls");
   }
-  const message = "403: Email cannot be found. <a href=\"/login\">try again</a>";
+  const message = "403: Password doesn't match! <a href=\"/login\">try again</a>";
   return res.status(403).send(message);
-  //res.redirect("/login");
 });
 
 app.post("/logout", (req, res) => {
@@ -118,9 +119,13 @@ app.post("/urls", (req, res) => {
   const { user_id } = req.session;
   if (checkLogin(user_id, users)) {
     const r = generateRandomString();
+    const day = new Date();
+
     urlDatabase[r] = {
       longURL: req.body.longURL,
-      userID: user_id
+      userID: user_id,
+      date: day.toLocaleString(),
+      visits: 0
     };
     //urlDatabase[r] = req.body.longURL;
     res.redirect("/urls/" + r);
@@ -200,13 +205,17 @@ app.get("/urls", (req, res) => {
   const templateVars = {
     login: clogin,
     email: useremail,
-    urls: userUrl
+    urls: userUrl,
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   const { user_id } = req.session;
+  if (!checkLogin(user_id, users)) {
+    return res.redirect("/login");
+  }
+
   const useremail = getEmailbyUid(user_id, users);
   const templateVars = {
     email: useremail
@@ -216,26 +225,29 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const { user_id } = req.session;
+  //const checkLogin = checkLogin(user_id, users);
   let checkshortUrl = false;
   for (const u in urlDatabase) {
     if (u === req.params.shortURL) checkshortUrl = true;
   }
 
-  if (checkshortUrl) {
-    const useremail = getEmailbyUid(user_id, users);
-    const templateVars = {
-      email: useremail,
-      shortURL: req.params.shortURL,
-      longURL: urlDatabase[req.params.shortURL].longURL
-    };
-
-    //console.log(req);
-    return res.render("urls_show", templateVars);
-
+  if (!checkshortUrl) {
+    const message =  "404: Invalid Link <a href=\"/urls\">Url Page</a>";
+    return res.status(404).send(message);
+  } else if (user_id !== urlDatabase[req.params.shortURL].userID) {
+    const message =  "404: Invalid Link Not Own by User! <a href=\"/urls\">Url Page</a>";
+    return res.status(404).send(message);
   }
 
-  const message =  "404: Invalid Link <a href=\"/urls\">Url Page</a>";
-  return res.status(400).send(message);
+  const useremail = getEmailbyUid(user_id, users);
+  const templateVars = {
+    email: useremail,
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL].longURL
+  };
+
+  //console.log(req);
+  return res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -245,6 +257,7 @@ app.get("/u/:shortURL", (req, res) => {
   }
   
   if (checkshortUrl) {
+    urlDatabase[req.params.shortURL].visits += 1;
     const longURL = urlDatabase[req.params.shortURL].longURL;
     return res.redirect(longURL);
   }
