@@ -4,13 +4,13 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["Home Page"](https://github.com/chenken12/tinyapp/blob/db78651d4321242479cabcccf6f544a3f4523daf/docs/home.png?raw=true)
+!["Home Page"](https://github.com/chenken12/tinyapp/blob/master/docs/home.png?raw=true)
 
-!["Add Url"](https://github.com/chenken12/tinyapp/blob/db78651d4321242479cabcccf6f544a3f4523daf/docs/add-url.png?raw=true)
+!["Add Url"](https://github.com/chenken12/tinyapp/blob/master/docs/add-url.png?raw=true)
 
-!["Edit Url"](https://github.com/chenken12/tinyapp/blob/dd86a8017a37830b8daa722e88f37b05f06c3856/docs/edit-url.png?raw=true)
+!["Edit Url"](https://github.com/chenken12/tinyapp/blob/master/docs/edit-url.png?raw=true)
 
-!["Login Page"](https://github.com/chenken12/tinyapp/blob/dd86a8017a37830b8daa722e88f37b05f06c3856/docs/login.png?raw=true)
+!["Login Page"](https://github.com/chenken12/tinyapp/blob/master/docs/login.png?raw=true)
 
 ## Dependencies
 
