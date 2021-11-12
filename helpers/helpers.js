@@ -1,4 +1,4 @@
-const getUserByEmail = function (email, database) {
+const getUserByEmail = function(email, database) {
   const gotEmail = checkEmail(email, database);
   if (gotEmail) {
     return gotEmail.id;
@@ -6,7 +6,7 @@ const getUserByEmail = function (email, database) {
   return undefined;
 };
 
-const getEmailbyUid = function (uid, userDb) {
+const getEmailbyUid = function(uid, userDb) {
   if (uid === undefined) {
     return undefined;
   } else {
@@ -14,7 +14,7 @@ const getEmailbyUid = function (uid, userDb) {
   }
 };
 
-const checkEmail = function (email, userDb) {
+const checkEmail = function(email, userDb) {
   for (const a in userDb) {
     if (userDb[a].email === email) {
       return userDb[a];
@@ -23,19 +23,19 @@ const checkEmail = function (email, userDb) {
   return undefined;
 };
 
-const checkLogin = function (uid, userDb) {
+const checkLogin = function(uid, userDb) {
   for (const a in userDb) {
-    if (userDb[a].id === uid ) {
+    if (userDb[a].id === uid) {
       return true;
     }
   }
   return false;
 };
 
-const filterUsersUrl = function (uid, urlDatabase) {
+const filterUsersUrl = function(uid, urlDatabase) {
   const uList = {};
   for (const list in urlDatabase) {
-    if (urlDatabase[list].userID === uid ) {
+    if (urlDatabase[list].userID === uid) {
       uList[list] = urlDatabase[list];
     }
   }

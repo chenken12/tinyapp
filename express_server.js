@@ -13,7 +13,7 @@ app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
-}))
+}));
 
 const PORT = 8080; // default port 8080
 
@@ -28,22 +28,22 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 const urlDatabase = {
   b6UTxQ: {
-      longURL: "https://www.tsn.ca",
-      userID: "aJ48lW"
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW"
   },
   i3BoGr: {
-      longURL: "https://www.google.ca",
-      userID: "aJ48lW"
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW"
   }
 };
 
-const users = { 
+const users = {
   "aJ48lW": {
-    id: "aJ48lW", 
-    email: "user@example.com", 
+    id: "aJ48lW",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur"
   }
-}
+};
 users["aJ48lW"].password = bcrypt.hashSync("purple-monkey-dinosaur", salt);
 
 app.get("/", (req, res) => {
@@ -61,13 +61,13 @@ app.post("/register", (req, res) => {
   console.log(req.body.email);
   console.log(req.body.password);
 
-  if (req.body.email === "" || req.body.password === "") { 
-    //res.send("400: no email or password was entered"); 
-    const message = "400: No email or password was entered";
+  if (req.body.email === "" || req.body.password === "") {
+    //res.send("400: no email or password was entered");
+    const message = "400: No email or password was entered <a href=\"/register\">try again</a>";
     return res.status(400).send(message);
   }
-  if (checkEmail(req.body.email, users)) { 
-    const message =  "400: Email is alreadly use";
+  if (checkEmail(req.body.email, users)) {
+    const message =  "400: Email is alreadly use! <a href=\"/register\">try again</a>";
     return res.status(400).send(message);
   }
 
@@ -99,10 +99,10 @@ app.post("/login", (req, res) => {
       req.session.user_id = acc.id;
       return res.redirect("/urls");
     }
-    const message = "403: Password doesn't match";
+    const message = "403: Password doesn't match! <a href=\"/login\">try again</a>";
     return res.status(403).send(message);
   }
-  const message = "403: Email cannot be found";
+  const message = "403: Email cannot be found. <a href=\"/login\">try again</a>";
   return res.status(403).send(message);
   //res.redirect("/login");
 });
@@ -116,16 +116,16 @@ app.post("/logout", (req, res) => {
 
 app.post("/urls", (req, res) => {
   const { user_id } = req.session;
-  if (checkLogin(user_id, users)) { 
+  if (checkLogin(user_id, users)) {
     const r = generateRandomString();
     urlDatabase[r] = {
       longURL: req.body.longURL,
       userID: user_id
-    }
+    };
     //urlDatabase[r] = req.body.longURL;
     res.redirect("/urls/" + r);
   } else {
-    const message =  "401: Unauthorized need to Login\n";
+    const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
     res.status(400).send(message);
   }
   
@@ -134,22 +134,22 @@ app.post("/urls", (req, res) => {
 app.post("/urls/:shortURL/delete", (req, res) => {
   //console.log(req.params.shortURL);
   const { user_id } = req.session;
-  if (checkLogin(user_id, users)) { 
+  if (checkLogin(user_id, users)) {
     delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
   } else {
-    const message =  "401: Unauthorized need to Login\n";
+    const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
     res.status(400).send(message);
   }
 });
 
 app.post("/urls/:shortURL/edit", (req, res) => {
   const { user_id } = req.session;
-  if (checkLogin(user_id, users)) { 
+  if (checkLogin(user_id, users)) {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
     res.redirect("/urls");
   } else {
-    const message =  "401: Unauthorized need to Login\n";
+    const message =  "401: Unauthorized need to Login\n <a href=\"/login\">try again</a>";
     res.status(400).send(message);
   }
 });
@@ -234,7 +234,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
   }
 
-  const message =  "404: Invalid Link";
+  const message =  "404: Invalid Link <a href=\"/urls\">Url Page</a>";
   return res.status(400).send(message);
 });
 
@@ -249,7 +249,7 @@ app.get("/u/:shortURL", (req, res) => {
     return res.redirect(longURL);
   }
 
-  const message =  "404: Invalid shortUrl";
+  const message =  "404: Invalid shortUrl <a href=\"/urls\">Url Page</a>";
   return res.status(400).send(message);
 });
 
