@@ -1,8 +1,10 @@
+// -- express_server.js -- //
+
 const express = require("express");
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const methodOverride = require('method-override')
-const { getEmailbyUid, checkEmail, checkLogin, filterUsersUrl } = require('./helpers/helpers');
+const { getEmailbyUid, checkEmail, checkLogin, filterUsersUrl, generateRandomString } = require('./helpers/helpers');
 
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
@@ -18,10 +20,6 @@ app.use(cookieSession({
 }));
 
 const PORT = 8080; // default port 8080
-
-const generateRandomString = function() {
-  return (Math.random() + 1).toString(36).substring(6);
-};
 
 app.set("view engine", "ejs");
 
@@ -55,6 +53,7 @@ users["aJ48lW"].password = bcrypt.hashSync("purple-monkey-dinosaur", salt);
 
 // -- -- POST -- -- //
 
+// check if email and password is vaild. If yes then made add user the db 
 app.post("/register", (req, res) => {
   console.log(req.body.email);
   console.log(req.body.password);
@@ -84,6 +83,7 @@ app.post("/register", (req, res) => {
   return res.redirect("/urls");
 });
 
+// check if email is in the db then password. If everything matahes let user login
 app.post("/login", (req, res) => {
   //console.log(req.body.email);
   const acc = checkEmail(req.body.email, users);
@@ -107,6 +107,7 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
+// get the user input then create a shortURL and add to the database 
 app.post("/urls", (req, res) => {
   const { user_id } = req.session;
   if (checkLogin(user_id, users)) {
@@ -137,6 +138,7 @@ app.get("/", (req, res) => {
   }
 });
 
+// the register page the user the sign up
 app.get("/register", (req, res) => {
   const { user_id } = req.session;
   const useremail = getEmailbyUid(user_id, users);
@@ -151,6 +153,7 @@ app.get("/register", (req, res) => {
   }
 });
 
+// the login page the user the sign in
 app.get("/login", (req, res) => {
   //console.log(req.cookies["user_id"]);
   const { user_id } = req.session;
@@ -166,6 +169,7 @@ app.get("/login", (req, res) => {
   }
 });
 
+// the main page where is deplay the list of user urls
 app.get("/urls", (req, res) => {
   const { user_id } = req.session;
   const clogin = checkLogin(user_id, users);
@@ -180,6 +184,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// go the the add URL page, for user to add URL to there list
 app.get("/urls/new", (req, res) => {
   const { user_id } = req.session;
   if (!checkLogin(user_id, users)) {
@@ -252,7 +257,7 @@ app.delete('/urls/:shortURL', function (req, res) {
   if (checkLogin(user_id, users)) {
     // check if user match with the short url before edit
     if (user_id !== urlDatabase[req.params.shortURL].userID) {
-      const message =  "400: Invalid Link Not Own by User! <a href=\"/urls\">Url Page</a>";
+      const message =  "400: Unable to delete not Own by User! <a href=\"/urls\">Url Page</a>";
       return res.status(404).send(message);
     }
     delete urlDatabase[req.params.shortURL];
@@ -271,7 +276,7 @@ app.put('/urls/:shortURL', function (req, res) {
   if (checkLogin(user_id, users)) {
     // check if user match with the short url before edit
     if (user_id !== urlDatabase[req.params.shortURL].userID) {
-      const message =  "400: Invalid Link Not Own by User! <a href=\"/urls\">Url Page</a>";
+      const message =  "400: Unable to edit not Own by User! <a href=\"/urls\">Url Page</a>";
       return res.status(404).send(message);
     }
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
