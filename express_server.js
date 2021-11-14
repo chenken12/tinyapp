@@ -135,12 +135,6 @@ app.post("/urls", (req, res) => {
   return res.status(400).send(message);
 });
 
-app.post("/urls/:shortURL", (req, res) => {
-  //console.log(req.params.shortURL);
-  const sURL = req.params.shortURL;
-  res.redirect("/urls/" + sURL);
-});
-
 // -- -- GET -- -- //
 
 app.get("/register", (req, res) => {
@@ -199,6 +193,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+// go the the edit URL page
 app.get("/urls/:shortURL", (req, res) => {
   const { user_id } = req.session;
   //const checkLogin = checkLogin(user_id, users);
@@ -226,6 +221,7 @@ app.get("/urls/:shortURL", (req, res) => {
   return res.render("urls_show", templateVars);
 });
 
+// redirect user the the longURL
 app.get("/u/:shortURL", (req, res) => {
   let checkshortUrl = false;
   for (const u in urlDatabase) {
