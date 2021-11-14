@@ -247,10 +247,18 @@ app.get("/urls.json", (req, res) => {
 });
 
 // -- -- DELETE -- -- //
+
+// let user delete unwanted shorturl
 app.delete('/urls/:shortURL', function (req, res) {
   //console.log("New Delete:", req.params.shortURL);
   const { user_id } = req.session;
+  // check if user is log in 
   if (checkLogin(user_id, users)) {
+    // check if user match with the short url before edit
+    if (user_id !== urlDatabase[req.params.shortURL].userID) {
+      const message =  "400: Invalid Link Not Own by User! <a href=\"/urls\">Url Page</a>";
+      return res.status(404).send(message);
+    }
     delete urlDatabase[req.params.shortURL];
     return res.redirect("/urls");
   }
@@ -259,9 +267,17 @@ app.delete('/urls/:shortURL', function (req, res) {
 });
 
 // -- -- PUT/EDIT -- -- //
+
+// let user edit or change the longURL, the short will stay the same
 app.put('/urls/:shortURL', function (req, res) {
   const { user_id } = req.session;
+  // check if user is log in 
   if (checkLogin(user_id, users)) {
+    // check if user match with the short url before edit
+    if (user_id !== urlDatabase[req.params.shortURL].userID) {
+      const message =  "400: Invalid Link Not Own by User! <a href=\"/urls\">Url Page</a>";
+      return res.status(404).send(message);
+    }
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
     return res.redirect("/urls");
   }
