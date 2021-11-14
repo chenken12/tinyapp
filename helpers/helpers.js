@@ -43,6 +43,16 @@ const checkLogin = function(uid, userDb) {
   return false;
 };
 
+// check if the url is in the database
+const verifyShortUrl = function(short, database) {
+  for (const u in database) {
+    if (u === short) {
+      return true;
+    } 
+  }
+  return false;
+}
+
 // send URL db and return an object url the is own by the user 
 const filterUsersUrl = function(uid, urlDatabase) {
   const uList = {};
@@ -54,4 +64,4 @@ const filterUsersUrl = function(uid, urlDatabase) {
   return uList;
 };
 
-module.exports = { getEmailbyUid, checkEmail, checkLogin, filterUsersUrl, getUserByEmail, generateRandomString };
+module.exports = { getEmailbyUid, checkEmail, checkLogin, filterUsersUrl, getUserByEmail, generateRandomString, verifyShortUrl };

@@ -4,7 +4,7 @@ const express = require("express");
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const methodOverride = require('method-override')
-const { getEmailbyUid, checkEmail, checkLogin, filterUsersUrl, generateRandomString } = require('./helpers/helpers');
+const { getEmailbyUid, checkEmail, checkLogin, filterUsersUrl, generateRandomString, verifyShortUrl } = require('./helpers/helpers');
 
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
@@ -195,17 +195,14 @@ app.get("/urls/new", (req, res) => {
 // go the the edit URL page
 app.get("/urls/:shortURL", (req, res) => {
   const { user_id } = req.session;
-
-  let checkshortUrl = false;
-  for (const u in urlDatabase) {
-    if (u === req.params.shortURL) checkshortUrl = true;
-  }
+  const shortURL = req.params.shortURL;
+  const checkshortUrl = verifyShortUrl(shortURL, urlDatabase);
 
   // check if the URL is real and own by user 
   if (!checkshortUrl) {
     const message =  "404: Invalid Link <a href=\"/urls\">Url Page</a>";
     return res.status(404).send(message);
-  } else if (user_id !== urlDatabase[req.params.shortURL].userID) {
+  } else if (user_id !== urlDatabase[shortURL].userID) {
     const message =  "404: Invalid Link Not Own by User! <a href=\"/urls\">Url Page</a>";
     return res.status(404).send(message);
   }
@@ -213,8 +210,8 @@ app.get("/urls/:shortURL", (req, res) => {
   const useremail = getEmailbyUid(user_id, users);
   const templateVars = {
     email: useremail,
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL
+    shortURL: shortURL,
+    longURL: urlDatabase[shortURL].longURL
   };
 
   return res.render("urls_show", templateVars);
@@ -222,14 +219,12 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // redirect user the the longURL
 app.get("/u/:shortURL", (req, res) => {
-  let checkshortUrl = false;
-  for (const u in urlDatabase) {
-    if (u === req.params.shortURL) checkshortUrl = true;
-  }
+  const shortURL = req.params.shortURL;
+  const checkshortUrl = verifyShortUrl(shortURL, urlDatabase);
   
   if (checkshortUrl) {
-    urlDatabase[req.params.shortURL].visits += 1;
-    const longURL = urlDatabase[req.params.shortURL].longURL;
+    urlDatabase[shortURL].visits += 1;
+    const longURL = urlDatabase[shortURL].longURL;
     return res.redirect(longURL);
   }
 
@@ -241,7 +236,6 @@ app.get("/u/:shortURL", (req, res) => {
 
 // let user delete unwanted shorturl
 app.delete('/urls/:shortURL', function (req, res) {
-  //console.log("New Delete:", req.params.shortURL);
   const { user_id } = req.session;
   // check if user is log in 
   if (!checkLogin(user_id, users)) {
