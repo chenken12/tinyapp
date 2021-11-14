@@ -53,15 +53,6 @@ const users = {
 };
 users["aJ48lW"].password = bcrypt.hashSync("purple-monkey-dinosaur", salt);
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
-app.get("/hello", (req, res) => {
-  const templateVars = { greeting: 'Hello World!' };
-  return res.render("hello_world", templateVars);
-});
-
 // -- -- POST -- -- //
 
 app.post("/register", (req, res) => {
@@ -136,6 +127,15 @@ app.post("/urls", (req, res) => {
 });
 
 // -- -- GET -- -- //
+
+app.get("/", (req, res) => {
+  const { user_id } = req.session;
+  if (checkLogin(user_id, users)) { 
+    return res.redirect("/urls");
+  } else {
+    return res.redirect("login");
+  }
+});
 
 app.get("/register", (req, res) => {
   const { user_id } = req.session;
